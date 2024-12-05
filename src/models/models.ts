@@ -1,8 +1,9 @@
 // src/models/models.ts
-export interface Todo {
+export interface Task {
   id: number;
   todo: string;
-  isDone: boolean;
+  description: string
   owner: string;
   status: 'todo' | 'doing' | 'complete';
 }
+

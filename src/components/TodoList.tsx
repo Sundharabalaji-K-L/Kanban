@@ -6,19 +6,19 @@ import {
   Typography 
 } from "@material-ui/core";
 import { Droppable } from "react-beautiful-dnd";
-import { Todo } from "../models/models";
+import { Task } from "../models/models";
 import SingleTodo from "./SingleTodo";
 
 interface props {
-  todos: Array<Todo>;
-  setTodos: React.Dispatch<React.SetStateAction<Array<Todo>>>;
+  tasks: Array<Task>;
+  setTasks: React.Dispatch<React.SetStateAction<Array<Task>>>;
   droppableId: string;
   title: string;
 }
 
 const TodoList: React.FC<props> = ({ 
-  todos, 
-  setTodos, 
+  tasks, 
+  setTasks, 
   droppableId, 
   title 
 }) => {
@@ -28,6 +28,7 @@ const TodoList: React.FC<props> = ({
         <Typography variant="h5" style={{ marginBottom: 16 }}>
           {title}
         </Typography>
+
         <Droppable droppableId={droppableId}>
           {(provided, snapshot) => (
             <div
@@ -41,13 +42,13 @@ const TodoList: React.FC<props> = ({
                 minHeight: 400
               }}
             >
-              {todos.map((todo, index) => (
+              {tasks.map((task, index) => (
                 <SingleTodo
                   index={index}
-                  todos={todos}
-                  todo={todo}
-                  key={todo.id}
-                  setTodos={setTodos}
+                  todos={tasks}
+                  todo={task}
+                  key={task.id}
+                  setTodos={setTasks}
                 />
               ))}
               {provided.placeholder}

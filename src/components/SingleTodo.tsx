@@ -20,13 +20,13 @@ import {
   AiFillDelete 
 } from "react-icons/ai";
 import { MdDone } from "react-icons/md";
-import { Todo } from "../models/models";
+import { Task } from "../models/models";
 
 interface SingleTodoProps {
   index: number;
-  todo: Todo;
-  todos: Array<Todo>;
-  setTodos: React.Dispatch<React.SetStateAction<Array<Todo>>>;
+  todo: Task
+  todos: Array<Task>;
+  setTodos: React.Dispatch<React.SetStateAction<Array<Task>>>;
 }
 
 const SingleTodo: React.FC<SingleTodoProps> = ({ 
@@ -36,7 +36,7 @@ const SingleTodo: React.FC<SingleTodoProps> = ({
   setTodos 
 }) => {
   const [edit, setEdit] = useState<boolean>(false);
-  const [editTodo, setEditTodo] = useState<string>(todo.todo);
+  const [editTodo, setEditTask] = useState<string>(todo.todo);
   const [editOwner, setEditOwner] = useState<string>(todo.owner);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -61,13 +61,6 @@ const SingleTodo: React.FC<SingleTodoProps> = ({
     setTodos(todos.filter((t) => t.id !== todo.id));
   };
 
-  const handleDone = () => {
-    setTodos(
-      todos.map((t) =>
-        t.id === todo.id ? { ...t, isDone: !t.isDone } : t
-      )
-    );
-  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -91,7 +84,7 @@ const SingleTodo: React.FC<SingleTodoProps> = ({
                 <form onSubmit={handleEdit}>
                   <TextField
                     value={editTodo}
-                    onChange={(e) => setEditTodo(e.target.value)}
+                    onChange={(e) => setEditTask(e.target.value)}
                     fullWidth
                     style={{ marginBottom: 16 }}
                     inputRef={inputRef}
@@ -114,10 +107,13 @@ const SingleTodo: React.FC<SingleTodoProps> = ({
                   <Typography 
                     variant="h6" 
                     style={{ 
-                      textDecoration: todo.isDone ? 'line-through' : 'none' 
+                      textDecoration: 'none' 
                     }}
                   >
                     {todo.todo}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Description: {todo.description}
                   </Typography>
                   <Typography variant="subtitle2" color="textSecondary">
                     Owner: {todo.owner}

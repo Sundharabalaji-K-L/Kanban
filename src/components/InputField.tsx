@@ -10,12 +10,12 @@ import {
   Select,
   MenuItem
 } from "@material-ui/core";
-import { Todo } from "../models/models";
+import { Task} from "../models/models";
 
 interface Props {
-  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
-  setDoing: React.Dispatch<React.SetStateAction<Todo[]>>;
-  setComplete: React.Dispatch<React.SetStateAction<Todo[]>>;
+  setTodos: React.Dispatch<React.SetStateAction<Task[]>>;
+  setDoing: React.Dispatch<React.SetStateAction<Task[]>>;
+  setComplete: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
 const InputField: React.FC<Props> = ({ 
@@ -24,15 +24,16 @@ const InputField: React.FC<Props> = ({
   setComplete 
 }) => {
   const [open, setOpen] = useState(false);
-  const [todo, setTodo] = useState<string>("");
+  const [todo, setTask] = useState<string>("");
   const [owner, setOwner] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
 
   const handleAdd = () => {
     if (todo && owner) {
-      const newTodo: Todo = {
+      const newTodo: Task = {
         id: Date.now(),
         todo,
-        isDone: false,
+        description,
         owner,
         status: 'todo'
       };
@@ -40,7 +41,8 @@ const InputField: React.FC<Props> = ({
       // Always add to todos list by default
       setTodos(prevTodos => [...prevTodos, newTodo]);
       
-      setTodo("");
+      setTask("");
+      setDescription("");
       setOwner("");
       setOpen(false);
     }
@@ -65,9 +67,20 @@ const InputField: React.FC<Props> = ({
             label="Task Name"
             fullWidth
             value={todo}
-            onChange={(e) => setTodo(e.target.value)}
+            onChange={(e) => setTask(e.target.value)}
             style={{ marginBottom: 16 }}
           />
+
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Description"
+            fullWidth
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
+
           <Select
             value={owner}
             onChange={(e) => setOwner(e.target.value as string)}
