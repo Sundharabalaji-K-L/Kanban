@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Container,
   Grid,
@@ -11,21 +11,56 @@ import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { Task } from "./models/models";
 import InputField from "./components/InputField";
 import TodoList from "./components/TodoList";
+import axios from "axios";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [doing, setDoing] = useState<Task[]>([]);
   const [complete, setComplete] = useState<Task[]>([]);
   const [filter, setFilter] = useState<string>('All');
+  const [ownersMenu, setOwnersMenu] = useState<string[]>([]);
 
-  const owners = ['All', 'John', 'Jane', 'Alice', 'Bob'];
+  const updateOwners = useCallback((newTasks: Task[] | Task) => {
+    const tasksToAdd = Array.isArray(newTasks) ? newTasks : [newTasks];
+    
+    const _owners = [
+      ...tasks.map(task => task.owner),
+      ...doing.map(task => task.owner),
+      ...complete.map(task => task.owner),
+      ...tasksToAdd.map(task => task.owner)
+    ];
 
-  const onDragEnd = (result: DropResult) => {
+    const uniqueOwners = Array.from(new Set(_owners)).sort();
+    setOwnersMenu(uniqueOwners);
+  }, [tasks, doing, complete]);
+
+  useEffect(() => {
+    let isMounted = true;
+    axios.get('http://localhost:5555/')
+      .then((response) => {
+        if (isMounted) {
+          const todoTasks = response.data.data.filter((task: Task) => task.status === 'todo');
+          const doingTasks = response.data.data.filter((task: Task) => task.status === 'doing');
+          const completeTasks = response.data.data.filter((task: Task) => task.status === 'complete');
+          
+          setTasks(todoTasks);
+          setDoing(doingTasks);
+          setComplete(completeTasks);
+
+          updateOwners([...todoTasks, ...doingTasks, ...completeTasks]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [updateOwners]);
+
+  const onDragEnd = useCallback(async (result: DropResult) => {
     const { source, destination } = result;
 
     if (!destination) return;
 
-    // Determine source and destination lists
     const sourceList =
       source.droppableId === 'todo' ? tasks :
       source.droppableId === 'doing' ? doing : complete;
@@ -42,26 +77,38 @@ const App: React.FC = () => {
       destination.droppableId === 'todo' ? setTasks :
       destination.droppableId === 'doing' ? setDoing : setComplete;
 
-    // Remove from source list
-    const [removed] = sourceList.splice(source.index, 1);
+    const newSourceList = [...sourceList];
+    const [removed] = newSourceList.splice(source.index, 1);
 
-    // Update status
-    removed.status = destination.droppableId as Task['status'];
+    const newStatus = destination.droppableId as Task['status'];
+    const updatedTask = { ...removed, status: newStatus };
 
-    // Add to destination list
-    destList.splice(destination.index, 0, removed);
+    try {
+      const response = await axios.put(
+        `http://localhost:5555/update/${updatedTask._id}`, 
+        updatedTask
+      );
 
-    // Update state
-    setSourceList([...sourceList]);
-    setDestList([...destList]);
-  };
+      const newDestList = [...destList];
+      newDestList.splice(destination.index, 0, updatedTask);
 
-  // Filter function for todos
-  const filterTodos = (todoList: Task[]) => {
+      setSourceList(newSourceList);
+      setDestList(newDestList);
+
+      updateOwners([...newSourceList, ...newDestList]);
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      setSourceList(sourceList);
+    }
+  }, [tasks, doing, complete, updateOwners]);
+
+  const filterTodos = useCallback((todoList: Task[]) => {
     return filter === 'All' 
       ? todoList 
       : todoList.filter(todo => todo.owner === filter);
-  };
+  }, [filter]);
+
+  const owners: string[] = ['All', ...ownersMenu];
 
   return (
     <Container>
@@ -71,6 +118,8 @@ const App: React.FC = () => {
             setTodos={setTasks} 
             setDoing={setDoing} 
             setComplete={setComplete} 
+            owners={ownersMenu}
+            updateOwners={updateOwners}
           />
         </Grid>
         <Grid item>
@@ -100,18 +149,21 @@ const App: React.FC = () => {
             tasks={filterTodos(tasks)}
             setTasks={setTasks}
             droppableId="todo"
+            owners={ownersMenu}
             title="Todo"
           />
           <TodoList
             tasks={filterTodos(doing)}
             setTasks={setDoing}
             droppableId="doing"
+            owners={ownersMenu}
             title="Doing"
           />
           <TodoList
             tasks={filterTodos(complete)}
             setTasks={setComplete}
             droppableId="complete"
+            owners={ownersMenu}
             title="Complete"
           />
         </Grid>
@@ -120,4 +172,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default React.memo(App);

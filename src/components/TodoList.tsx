@@ -1,5 +1,4 @@
-// src/components/TodoList.tsx
-import React from "react";
+import React, { memo } from "react";
 import { 
   Grid, 
   Paper, 
@@ -9,16 +8,18 @@ import { Droppable } from "react-beautiful-dnd";
 import { Task } from "../models/models";
 import SingleTodo from "./SingleTodo";
 
-interface props {
+interface TodoListProps {
   tasks: Array<Task>;
   setTasks: React.Dispatch<React.SetStateAction<Array<Task>>>;
+  owners: Array<string>;
   droppableId: string;
   title: string;
 }
 
-const TodoList: React.FC<props> = ({ 
+const TodoList: React.FC<TodoListProps> = memo(({ 
   tasks, 
-  setTasks, 
+  setTasks,
+  owners,
   droppableId, 
   title 
 }) => {
@@ -46,8 +47,9 @@ const TodoList: React.FC<props> = ({
                 <SingleTodo
                   index={index}
                   todos={tasks}
+                  owners={owners}
                   todo={task}
-                  key={task.id}
+                  key={task._id}
                   setTodos={setTasks}
                 />
               ))}
@@ -58,6 +60,6 @@ const TodoList: React.FC<props> = ({
       </Paper>
     </Grid>
   );
-};
+});
 
 export default TodoList;
