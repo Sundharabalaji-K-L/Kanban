@@ -8,7 +8,7 @@ import {
   InputLabel
 } from "@material-ui/core";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { Task } from "./models/models";
+import { Task, User } from "./models/models";
 import InputField from "./components/InputField";
 import TodoList from "./components/TodoList";
 import axios from "axios";
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [complete, setComplete] = useState<Task[]>([]);
   const [filter, setFilter] = useState<string>('All');
   const [ownersMenu, setOwnersMenu] = useState<string[]>([]);
+  const [ownerList, setOwnerList] = useState<string[]>([]);
 
   const updateOwners = useCallback((newTasks: Task[] | Task) => {
     const tasksToAdd = Array.isArray(newTasks) ? newTasks : [newTasks];
@@ -56,6 +57,14 @@ const App: React.FC = () => {
     };
   }, [updateOwners]);
 
+  useEffect(()=>{
+    axios.get('http://localhost:5555/users')
+    .then((response)=>{
+      const _owners = response.data.data.map((rec: User)=>rec.name);
+      setOwnerList(_owners);
+    })
+
+  }, [])
   const onDragEnd = useCallback(async (result: DropResult) => {
     const { source, destination } = result;
 
@@ -118,7 +127,7 @@ const App: React.FC = () => {
             setTodos={setTasks} 
             setDoing={setDoing} 
             setComplete={setComplete} 
-            owners={ownersMenu}
+            owners={ownerList}
             updateOwners={updateOwners}
           />
         </Grid>
@@ -149,21 +158,21 @@ const App: React.FC = () => {
             tasks={filterTodos(tasks)}
             setTasks={setTasks}
             droppableId="todo"
-            owners={ownersMenu}
+            owners={ownerList}
             title="Todo"
           />
           <TodoList
             tasks={filterTodos(doing)}
             setTasks={setDoing}
             droppableId="doing"
-            owners={ownersMenu}
+            owners={ownerList}
             title="Doing"
           />
           <TodoList
             tasks={filterTodos(complete)}
             setTasks={setComplete}
             droppableId="complete"
-            owners={ownersMenu}
+            owners={ownerList}
             title="Complete"
           />
         </Grid>
